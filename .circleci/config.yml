@@ -14,4 +14,4 @@ jobs:
           command: npm test
       - deploy:
           name: publish package
-          command: /paybase/ci/publish.sh
+          command: sh ./ci/publish.sh
