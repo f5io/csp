@@ -19,7 +19,7 @@ is_publish_branch() {
 
 get_version_bump() {
   local last_msg=`git log -1 --oneline --pretty=%B`
-  if [[ $last_msg == "[publish] "* ]]; then
+  if [[ $last_msg == \[publish\]* ]]; then
     echo "$last_msg" | sed -n -e 's/\[publish\] \(.*\)/\1/p'
   else
     echo "patch"
