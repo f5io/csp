@@ -37,6 +37,8 @@ if is_publish_branch "CIRCLE_BRANCH"; then
   echo -e "$NPM_USER\n$NPM_PASS\n$NPM_EMAIL" | npm login
 
   npm version `get_version_bump` -m '[ci skip] %s'
+  git config user.email "$NPM_EMAIL"
+  git config user.name "$NPM_USER"
   git push && git push --tags
 
   npm publish
