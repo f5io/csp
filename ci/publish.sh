@@ -41,5 +41,5 @@ if is_publish_branch "CIRCLE_BRANCH"; then
   npm version `get_version_bump` -m '[ci skip] %s'
   git push && git push --tags
 
-  npm publish
+  npm publish --access public
 fi
