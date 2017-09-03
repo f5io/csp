@@ -1,6 +1,6 @@
 const test = require('tape');
 const csp = require('../');
-const { channel, put, take, alts } = csp;
+const { channel, put, take, alts, drain } = csp;
 
 const msg = (() => {
   let i = 0;
@@ -13,6 +13,7 @@ test('[csp] methods', t => {
   t.ok(csp.put, 'csp.put should be defined');
   t.ok(csp.take, 'csp.take should be defined');
   t.ok(csp.alts, 'csp.alts should be defined');
+  t.ok(csp.drain, 'csp.drain should be defined');
   t.end();
 });
 
@@ -42,6 +43,17 @@ test('[csp] alts', t => {
   const chan2 = channel();
   const res = alts(chan1, chan2);
   t.ok(res instanceof Promise, 'should return an instance of a Promise');
+  t.end();
+});
+
+test('[csp] drain', async t => {
+  const chan = channel();
+  const messages = [ msg(), msg(), msg(), msg(), msg() ];
+  messages.forEach(m => put(chan, m));
+  const res = drain(chan);
+  t.ok(res instanceof Promise, 'should return an instance of a Promise');
+  const result = await res;
+  t.deepEqual(result, messages, 'should drain the channel');
   t.end();
 });
 
