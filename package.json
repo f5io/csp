@@ -1,0 +1,19 @@
+{
+  "name": "@paybase/csp",
+  "version": "0.9.0",
+  "description": "async/await communicating sequential processes",
+  "main": "index.js",
+  "engines": {
+    "node": ">=7.4"
+  },
+  "scripts": {
+    "test": "nyc --check-coverage --lines 100 --functions 100 --branches 100 node ./test/{,**/}*.spec.js",
+    "report": "nyc report --reporter=html"
+  },
+  "author": "Joe Harlow",
+  "license": "ISC",
+  "devDependencies": {
+    "nyc": "^11.1.0",
+    "tape": "^4.8.0"
+  }
+}

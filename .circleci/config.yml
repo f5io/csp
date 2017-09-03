@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: mhart/alpine-node:latest
+    working_directory: /paybase
+    steps:
+      - checkout
+      - run:
+          name: dependencies
+          command: npm install
+      - run:
+          name: test
+          command: npm test
+      - deploy:
+          name: publish package
+          command: sh -c ./ci/publish.sh
