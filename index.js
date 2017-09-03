@@ -46,14 +46,23 @@ const alts = (...chs) =>
       return ch[messages].pop();
     });
 
+const drain = (ch) => {
+  const msgs = [];
+  while (ch[messages].length)
+    msgs.push(take(ch));
+  return Promise.all(msgs);
+};
+
 exports.channel = channel;
 exports.put = put;
 exports.take = take;
 exports.alts = alts;
+exports.drain = drain;
 
 module.exports = {
   channel,
   put,
   take,
   alts,
+  drain,
 };
