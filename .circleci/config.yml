@@ -14,4 +14,4 @@ jobs:
           command: npm test
       - deploy:
           name: publish package
-          command: sh ./ci/publish.sh
+          command: bash ./ci/publish.sh
