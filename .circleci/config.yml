@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: mhart/alpine-node:latest
+      - image: node:latest
     working_directory: /paybase
     steps:
       - checkout
