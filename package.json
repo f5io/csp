@@ -7,7 +7,7 @@
     "node": ">=7.4"
   },
   "scripts": {
-    "test": "nyc --check-coverage --lines 100 --functions 100 --branches 100 node ./test/{,**/}*.spec.js",
+    "test": "nyc --check-coverage --lines 100 --functions 100 --branches 100 node ./test/index.spec.js",
     "report": "nyc report --reporter=html"
   },
   "author": "Joe Harlow",
