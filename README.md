@@ -21,6 +21,8 @@ Below is a trivial example of usage, that plays on the standard ping-pong exampl
 ```javascript
 const { channel, put, take } = require('@paybase/csp');
 
+const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 const wiff = channel();
 const waff = channel();
 
@@ -107,3 +109,17 @@ put(chan, 39);
 
 const msgs = await drain(chan); // will receive [ 42, 41, 40, 39 ]
 ```
+
+### Contributions
+
+Contributions are welcomed and appreciated!
+
+1. Fork this repository.
+1. Make your changes, documenting your new code with comments.
+1. Submit a pull request with a sane commit message.
+
+Feel free to get in touch if you have any questions.
+
+### License
+
+Please see the `LICENSE` file for more information.
