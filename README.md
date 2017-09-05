@@ -45,7 +45,7 @@ put(waff, createBall());
 
 ![ping pong](/assets/pingpong.gif?raw=true)
 
-### Methods
+### API
 
 This library exposes 4 functions and one factory.
 
