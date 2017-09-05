@@ -11,7 +11,7 @@
     "report": "nyc report --reporter=html"
   },
   "author": "Joe Harlow",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "nyc": "^11.1.0",
     "tape": "^4.8.0"
