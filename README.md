@@ -4,6 +4,8 @@ Communicating Sequential Processes built on top of nodes `async/await`.
 
 ### Installation
 
+This library requires `async/await` support in your environment, so ideally `node>=7.4`.
+
 ```
 $ npm install --save @paybase/csp
 ```
