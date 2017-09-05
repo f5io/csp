@@ -42,6 +42,7 @@ createBat(wiff, waff); // create a bat that will waff wiffs
 
 put(waff, createBall());
 ```
-![ping pong](/assets/pingpong.gif?raw=true)
+
+<img src="/assets/pingpong.gif?raw=true" style="border-radius: 5px; border: 1px solid rgba(0,0,0,0.3); overflow: hidden; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);"/>
 
 ### Methods
