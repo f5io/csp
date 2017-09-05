@@ -31,7 +31,7 @@ const createBat = async (inbound, outbound) => {
     const ball = await take(inbound); // wait for an incoming ball
     ball.hits++;
     ball.status = ball.status === 'wiff!' ? 'waff!' : 'wiff!';
-    console.log(`🎾  Ball hit ${ball.hit} time(s), ${ball.status}`);
+    console.log(`🎾  Ball hit ${ball.hits} time(s), ${ball.status}`);
     await timeout(500); // assume its going to take a bit to hit the ball
     await put(outbound, ball); // smash the ball back
   }
@@ -43,6 +43,6 @@ createBat(wiff, waff); // create a bat that will waff wiffs
 put(waff, createBall());
 ```
 
-<img src="/assets/pingpong.gif?raw=true" style="border-radius: 5px; border: 1px solid rgba(0,0,0,0.3); overflow: hidden; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);"/>
+![ping pong](/assets/pingpong.gif?raw=true)
 
 ### Methods
