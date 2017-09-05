@@ -32,7 +32,7 @@ const createBat = async (inbound, outbound) => {
     ball.hits++;
     ball.status = ball.status === 'wiff!' ? 'waff!' : 'wiff!';
     console.log(`🎾  Ball hit ${ball.hits} time(s), ${ball.status}`);
-    await timeout(500); // assume its going to take a bit to hit the ball
+    await timeout(500); // assume it's going to take a bit to hit the ball
     await put(outbound, ball); // smash the ball back
   }
 };
@@ -47,7 +47,7 @@ put(waff, createBall());
 
 ### Methods
 
-This library exposes 4 methods and one factory.
+This library exposes 4 functions and one factory.
 
 #### `channel()`
 
@@ -59,7 +59,7 @@ const chan = channel();
 
 #### `put(channel, message)` -> `Promise`
 
-The `put` method requires the `channel` on which to put the supplied `message`. The `put` method returns a `Promise` which can be optionally awaited and will resolve when something is ready to take the `message` from the `channel`.
+The `put` function requires the `channel` on which to put the supplied `message`. The `put` method returns a `Promise` which can be optionally awaited and will resolve when something is ready to take the `message` from the `channel`.
 
 ```javascript
 const chan = channel();
@@ -72,7 +72,7 @@ await put(chan, 42);
 
 #### `take(channel)` -> `Promise`
 
-The `take` method requires the `channel` to take from. The `take` method returns a `Promise` which should always be awaited and will resolve with a message, when a message is available.
+The `take` function requires the `channel` to take from. The `take` method returns a `Promise` which should always be awaited and will resolve with a message, when a message is available.
 
 ```javascript
 const chan = channel();
@@ -84,7 +84,7 @@ const msg = await take(chan); // will receive 42
 
 #### `alts(...channels)` -> `Promise`
 
-The `alts` method will race taking values from multiple `channels`.
+The `alts` function will race taking values from multiple `channels`.
 
 ```javascript
 const chan1 = channel();
@@ -96,7 +96,7 @@ const msg = await alts(chan1, chan2); // will receive 42
 
 #### `drain(channel)` -> `Promise`
 
-The `drain` method requires a `channel` which it will drain all messages from until empty, returning an array of messages.
+The `drain` function requires a `channel` which it will drain all messages from until empty, returning an array of messages.
 
 ```javascript
 const chan = channel();
