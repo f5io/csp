@@ -35,7 +35,7 @@ const take = (ch, _race) =>
         ch[putters].pop()();
         ch[takers].pop()(ch[messages].pop());
       }
-    } 
+    }
   });
 
 const alts = (...chs) =>
