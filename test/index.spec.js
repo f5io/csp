@@ -20,7 +20,6 @@ test('[csp] methods', t => {
 test('[csp] channel', t => {
   const chan = channel();
   t.equal(Object.getOwnPropertySymbols(chan).length, 4, 'should contain 4 symbol properties');
-  t.equal(Object.keys(chan).length, 0, 'should not expose properties normally');
   t.end();
 });
 

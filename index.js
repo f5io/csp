@@ -2,14 +2,21 @@ const messages = Symbol('messages');
 const putters = Symbol('putters');
 const takers = Symbol('takers');
 const race = Symbol('race');
+const { PassThrough, Transform } = require('stream');
 
-const channel = () =>
-  ({
-    [messages]: [],
-    [putters]: [],
-    [takers]: [],
-    [race]: [],
+const channel = () => {
+  const tfm = new Transform({
+    transform(chunk, enc, cb) {
+      put(tfm, chunk);
+      cb();
+    }
   });
+  tfm[messages] = [];
+  tfm[putters] = [];
+  tfm[takers] = [];
+  tfm[race] = [];
+  return tfm;
+}
 
 const put = (ch, msg) =>
   new Promise(resolve => {
@@ -35,7 +42,7 @@ const take = (ch, _race) =>
         ch[putters].pop()();
         ch[takers].pop()(ch[messages].pop());
       }
-    } 
+    }
   });
 
 const alts = (...chs) =>
@@ -46,8 +53,17 @@ const alts = (...chs) =>
       return ch[messages].pop();
     });
 
-const drain = (ch) => {
+const drain = (ch, streaming = false) => {
   const msgs = [];
+  if (streaming) {
+    const stream = new PassThrough({ objectMode: true })
+    ((stream) => {
+      while (ch[message].length)
+        stream.write(take(ch));
+    })(stream);
+    return stream;
+  }
+
   while (ch[messages].length)
     msgs.push(take(ch));
   return Promise.all(msgs);
