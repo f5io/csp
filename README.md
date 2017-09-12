@@ -1,10 +1,12 @@
 # @paybase/csp
 
-Communicating Sequential Processes built on top of nodes `async/await`.
+A library for Communicating Sequential Processes in Node.js, built on top of `async/await`.
 
-### Installation
+[![npm version](https://badge.fury.io/js/%40paybase%2Fcsp.svg)](https://badge.fury.io/js/%40paybase%2Fcsp)
 
-This library requires `async/await` support in your environment, so ideally `node>=7.4`.
+## Installation
+
+This library requires `async/await` support in your Node.js runtime, so ideally `node>=7.4`.
 
 ```
 $ npm install --save @paybase/csp
@@ -16,7 +18,7 @@ or
 $ yarn add @paybase/csp
 ```
 
-### Example Usage
+## Example Usage
 
 Below is a trivial example of usage, that plays on the standard ping-pong example.
 
@@ -49,11 +51,11 @@ put(waff, createBall());
 
 ![ping pong](/assets/pingpong.gif?raw=true)
 
-### API
+## API
 
 This library exposes 4 functions and one factory.
 
-#### `channel()`
+### `channel()`
 
 This factory method constructs a new `channel` and returns it. A channel contains no publicly accessible properties, but contains information about interactions with the `channel`.
 
@@ -61,7 +63,7 @@ This factory method constructs a new `channel` and returns it. A channel contain
 const chan = channel();
 ```
 
-#### `put(channel, message)` -> `Promise`
+### `put(channel, message)` -> `Promise`
 
 The `put` function requires the `channel` on which to put the supplied `message`. The `put` method returns a `Promise` which can be optionally awaited and will resolve when something is ready to take the `message` from the `channel`.
 
@@ -74,7 +76,7 @@ put(chan, 42);
 await put(chan, 42);
 ```
 
-#### `take(channel)` -> `Promise`
+### `take(channel)` -> `Promise`
 
 The `take` function requires the `channel` to take from. The `take` method returns a `Promise` which should always be awaited and will resolve with a message, when a message is available.
 
@@ -86,7 +88,7 @@ put(chan, 42);
 const msg = await take(chan); // will receive 42
 ```
 
-#### `alts(...channels)` -> `Promise`
+### `alts(...channels)` -> `Promise`
 
 The `alts` function will race taking values from multiple `channels`.
 
@@ -98,7 +100,7 @@ put(chan2, 42);
 const msg = await alts(chan1, chan2); // will receive 42
 ```
 
-#### `drain(channel)` -> `Promise`
+### `drain(channel)` -> `Promise`
 
 The `drain` function requires a `channel` which it will drain all messages from until empty, returning an array of messages.
 
@@ -112,7 +114,7 @@ put(chan, 39);
 const msgs = await drain(chan); // will receive [ 42, 41, 40, 39 ]
 ```
 
-### Contributions
+## Contributions
 
 Contributions are welcomed and appreciated!
 
@@ -122,6 +124,6 @@ Contributions are welcomed and appreciated!
 
 Feel free to get in touch if you have any questions.
 
-### License
+## License
 
 Please see the `LICENSE` file for more information.
