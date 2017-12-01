@@ -46,6 +46,20 @@ const alts = (...chs) =>
       return ch[messages].pop();
     });
 
+const map = (obj, fn) =>
+  obj instanceof Set ? [...obj.values()].map(fn) :
+  obj instanceof Map ? [...obj.entries()].map(([key, val]) => fn(val, key)) :
+  Array.isArray(obj) ? obj.map(fn) :
+  Object.entries(obj).map(([key, val]) => fn(val, key));
+
+const select = (chs) =>
+  Promise.race(map(chs, (ch, key) => take(ch, race).then(result => [key, result])))
+    .then(([key, ch]) => {
+      chs.forEach(c => c !== ch && c[race].pop());
+      ch[putters].pop()();
+      return [key, ch[messages].pop()];
+    });
+
 const drain = (ch) => {
   const msgs = [];
   while (ch[messages].length)
@@ -58,6 +72,7 @@ exports.put = put;
 exports.take = take;
 exports.alts = alts;
 exports.drain = drain;
+exports.select = select;
 
 module.exports = {
   channel,
@@ -65,4 +80,5 @@ module.exports = {
   take,
   alts,
   drain,
+  select,
 };
