@@ -52,10 +52,14 @@ const map = (obj, fn) =>
   Array.isArray(obj) ? obj.map(fn) :
   Object.entries(obj).map(([key, val]) => fn(val, key));
 
+const forEach = (obj, fn) =>
+  'forEach' in obj ? obj.forEach(fn) :
+  Object.values(obj).forEach(fn);
+
 const select = (chs) =>
   Promise.race(map(chs, (ch, key) => take(ch, race).then(result => [key, result])))
     .then(([key, ch]) => {
-      chs.forEach(c => c !== ch && c[race].pop());
+      forEach(chs, c => c !== ch && c[race].pop());
       ch[putters].pop()();
       return [key, ch[messages].pop()];
     });
