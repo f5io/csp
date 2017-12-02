@@ -47,7 +47,7 @@ const alts = (...chs) =>
     });
 
 const map = (obj, fn) =>
-  obj instanceof Set ? [...obj.values()].map(fn) :
+  obj instanceof Set ? [...obj.values()].map(ch => fn(ch, ch)) :
   obj instanceof Map ? [...obj.entries()].map(([key, val]) => fn(val, key)) :
   Array.isArray(obj) ? obj.map(fn) :
   Object.entries(obj).map(([key, val]) => fn(val, key));

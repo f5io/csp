@@ -186,7 +186,7 @@ test('[csp] select Set, chan1 ready', async t => {
   const result = select(new Set([chan1, chan2]));
   await put(chan1, m);
   const [id, res] = await result;
-  t.equal(id, 0, 'should receive the correct id');
+  t.equal(id, chan1, 'should receive the correct id');
   t.equal(res, m, 'should receive the correct value');
   t.end();
 });
@@ -199,7 +199,7 @@ test('[csp] select Set, chan2 ready', async t => {
   const result = select(new Set([chan1, chan2]));
   await putter;
   const [id, res] = await result;
-  t.equal(id, 1, 'should receive the correct id');
+  t.equal(id, chan2, 'should receive the correct id');
   t.equal(res, m, 'should receive the correct value');
   t.end();
 });
