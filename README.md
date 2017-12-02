@@ -110,7 +110,7 @@ const chan2 = channel();
 
 put(chan2, 42);
 const channels = [chan1, chan2];
-const msg = await select(channels); // will receive [1, 42]
+const result = await select(channels); // will receive [1, 42]
 ```
 
 Works with `Map` and `Set` as well as with plain-old javascript arrays and objects.
