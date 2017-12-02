@@ -53,7 +53,7 @@ put(waff, createBall());
 
 ## API
 
-This library exposes 4 functions and one factory.
+This library exposes 5 functions and one factory.
 
 ### `channel()`
 
