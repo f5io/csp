@@ -13,7 +13,7 @@ test('[csp] methods', t => {
   t.ok(csp.put, 'csp.put should be defined');
   t.ok(csp.take, 'csp.take should be defined');
   t.ok(csp.alts, 'csp.alts should be defined');
-  t.ok(csp.select, 'csp.drain should be defined');
+  t.ok(csp.select, 'csp.select should be defined');
   t.ok(csp.drain, 'csp.drain should be defined');
   t.end();
 });
