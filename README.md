@@ -53,7 +53,7 @@ put(waff, createBall());
 
 ## API
 
-This library exposes 4 functions and one factory.
+This library exposes 5 functions and one factory.
 
 ### `channel()`
 
@@ -99,6 +99,21 @@ const chan2 = channel();
 put(chan2, 42);
 const msg = await alts(chan1, chan2); // will receive 42
 ```
+
+### `select(Map<*, channel>|Set<channel>|Array<channel>|Object<string, channel>)` -> `Promise`
+
+The `select` function will race taking values from multiple `channels`, similar to `alts`, but will also return the key of the channel that was selected.
+
+```javascript
+const chan1 = channel();
+const chan2 = channel();
+
+put(chan2, 42);
+const channels = [chan1, chan2];
+const result = await select(channels); // will receive [1, 42]
+```
+
+Works with `Map` and `Set` as well as with plain-old javascript arrays and objects.
 
 ### `drain(channel)` -> `Promise`
 
