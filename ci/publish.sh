@@ -31,10 +31,10 @@ if is_publish_branch "CIRCLE_BRANCH"; then
   : ${NPM_EMAIL:=ci@paybase.io}  
 
   check_env "NPM_USER"
-  check_env "NPM_PASS"
   check_env "NPM_EMAIL"
+  check_env "NPM_TOKEN"
 
-  echo -e "$NPM_USER\n$NPM_PASS\n$NPM_EMAIL" | npm login
+  echo "$NPM_TOKEN" | base64 -d > ~/.npmrc
 
   git config user.email "$NPM_EMAIL"
   git config user.name "$NPM_USER"
