@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "lib": ["es2018"],
+    "module": "None",
+    "moduleResolution": "Node",
+    "target": "ES2017",
+    "outDir": "./dist",
+    "preserveConstEnums": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noImplicitUseStrict": true,
+    "downlevelIteration": true,
+    "declaration": true
+  },
+  "include": [ "src/**/*", "test/**/*" ]
+}
