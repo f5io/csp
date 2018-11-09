@@ -1,6 +1,6 @@
 {
   "name": "@paybase/csp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "async/await communicating sequential processes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
