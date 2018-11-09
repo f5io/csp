@@ -2,18 +2,35 @@
   "name": "@paybase/csp",
   "version": "1.0.2",
   "description": "async/await communicating sequential processes",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "engines": {
     "node": ">=7.4"
   },
   "scripts": {
-    "test": "nyc --check-coverage --lines 100 --functions 100 --branches 100 node ./test/index.spec.js",
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -w -p tsconfig.build.json",
+    "test": "nyc --check-coverage --lines 100 --functions 100 --branches 100 tape -r ts-node/register ./test/index.spec.ts",
     "report": "nyc report --reporter=html"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "exclude": [
+      "test"
+    ]
   },
   "author": "Joe Harlow",
   "license": "MIT",
   "devDependencies": {
+    "@types/tape": "^4.2.32",
+    "eslint": "^5.8.0",
+    "eslint-plugin-typescript": "^0.13.0",
     "nyc": "^11.1.0",
-    "tape": "^4.8.0"
+    "tape": "^4.8.0",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.6",
+    "typescript-eslint-parser": "^20.1.1"
   }
 }

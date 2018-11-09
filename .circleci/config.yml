@@ -12,6 +12,9 @@ jobs:
       - run:
           name: test
           command: npm test
+      - run:
+          name: compile
+          command: npm run build
       - deploy:
           name: publish package
           command: bash ./ci/publish.sh
