@@ -1,3 +1,4 @@
+.eslintrc
 .circleci/
 .nyc_output/
 assets/
@@ -5,3 +6,4 @@ ci/
 coverage/
 src/
 test/
+tsconfig.*
