@@ -30,18 +30,19 @@ function channel<T>(): Channel<T> {
 function put<T>(ch: Channel<T>, msg: T): Promise<void> {
   return new Promise(resolve => {
     prependMessage(ch, msg);
-    waitATaker(ch, resolve);
+    waitATakerOrARacer(ch, resolve);
 
     if (isThereAlreadyAPendingTaker(ch)) {
       unwaitOldestPutter(ch);
       const msg = retrieveOldestMessage(ch);
       const taker = retrieveOldestTaker(ch);
       forwardMessage(taker, msg);
+    } 
+    
+    if (isThereAPendingRacer(ch)) {
+      const racer = retrieveOldestRacer(ch);
+      fulfillTheRacer(racer, ch);
     }
-
-    // TODO
-    if (ch[racers].length)
-      ch[racers].pop()(ch);
   });
 }
 
@@ -58,24 +59,26 @@ function take<T>(ch: Channel<T>): Promise<T> {
   });
 }
 
-function alts<T>(...chs: Channel<T>[]): Promise<T> {
-  return Promise
-    .race(chs.map(ch => race(ch)))
-    .then(ch => {
-      chs.forEach(c => c !== ch && c[racers].pop());
-      ch[putters].pop()();
-      return ch[messages].pop();
-    });
+async function alts<T>(...chs: Channel<T>[]): Promise<T> {
+  const winningChannel = await Promise.race(chs.map(ch => race(ch)));
+  const losersChannels = chs.filter(c => c !== winningChannel);
+  removeLosersRacersFromTheirChannels(losersChannels);
+
+  unwaitOldestPutter(winningChannel);
+
+  const msg = retrieveOldestMessage(winningChannel)
+  return msg;
+
 }
 
 function select<T>(chs: Selectable<T>): Promise<[any, T]> {
   return Promise
     .race(map(chs, (ch, key) =>
-      race(ch).then(result => [ key, result ]) as Promise<[any, Channel<T>]>))
-    .then(([ key, ch ]) => {
+      race(ch).then(result => [key, result]) as Promise<[any, Channel<T>]>))
+    .then(([key, ch]) => {
       forEach(chs, c => c !== ch && c[racers].pop());
       ch[putters].pop()();
-      return [ key, ch[messages].pop() ];
+      return [key, ch[messages].pop()];
     }) as Promise<[any, T]>;
 }
 
@@ -89,11 +92,21 @@ function drain<T>(ch: Channel<T>): Promise<T[]> {
 export { channel, put, take, alts, select, drain };
 
 /* private methods */
+function race<T>(ch: Channel<T>): Promise<Channel<T>> {
+  return new Promise(resolve => {
+    waitAMessage(ch, resolve);
+
+    if (isThereAlreadyAPendingPutter(ch)) {
+      const racer = retrieveOldestRacer(ch);
+      fulfillTheRacer(racer, ch);
+    }
+  });
+}
 
 function prependMessage<T>(ch: Channel<T>, msg: T): void {
   ch[messages].unshift(msg);
 }
-function waitATaker<T>(ch: Channel<T>, resolve: () => void): void {
+function waitATakerOrARacer<T>(ch: Channel<T>, resolve: () => void): void {
   ch[putters].unshift(resolve);
 }
 function isThereAlreadyAPendingTaker<T>(ch: Channel<T>): boolean {
@@ -118,24 +131,36 @@ function waitAPutter<T>(ch: Channel<T>, resolve: (msg: T) => void): void {
 function isThereAlreadyAPendingPutter<T>(ch: Channel<T>): boolean {
   return !!ch[putters].length;
 }
-
-function race<T>(ch: Channel<T>): Promise<Channel<T>> {
-  return new Promise(resolve => {
-    ch[racers].unshift(resolve);
-    if (ch[putters].length)
-      ch[racers].pop()(ch);
-  });
+function waitAMessage<T>(ch: Channel<T>, resolve: (ch: Channel<T>) => void): void {
+  ch[racers].unshift(resolve);
 }
+function retrieveOldestRacer<T>(ch: Channel<T>): ((ch: Channel<T>) => void) {
+  return ch[racers].pop();
+}
+function fulfillTheRacer<T>(racer: (ch: Channel<T>) => void, ch: Channel<T>): void {
+  racer(ch);
+}
+function isThereAPendingRacer<T>(ch: Channel<T>): boolean {
+  return !!ch[racers].length;
+}
+function removeLosersRacersFromTheirChannels<T>(chs: Channel<T>[]): void {
+  chs.forEach(c => c[racers].pop());
+}
+
+
+
+
+
 
 function map<T>(sel: Selectable<T>, fn: (c: Channel<T>, k: any) => Promise<[any, Channel<T>]>): Promise<[any, Channel<T>]>[] {
   if (sel instanceof Set) {
-    return [ ...sel.values() ].map(ch => fn(ch, ch));
+    return [...sel.values()].map(ch => fn(ch, ch));
   } else if (sel instanceof Map) {
-    return [ ...sel.entries() ].map(([ k, v ]) => fn(v, k));
+    return [...sel.entries()].map(([k, v]) => fn(v, k));
   } else if (Array.isArray(sel)) {
     return sel.map(fn);
   }
-  return Object.entries(sel).map(([ k, v ]) => fn(v, k));
+  return Object.entries(sel).map(([k, v]) => fn(v, k));
 }
 
 function forEach<T>(sel: Selectable<T>, fn: (c: Channel<T>) => void): void {
