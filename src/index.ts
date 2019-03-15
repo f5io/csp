@@ -32,14 +32,15 @@ function put<T>(ch: Channel<T>, msg: T): Promise<void> {
     prependMessage(ch, msg);
     waitATakerOrARacer(ch, resolve);
 
+    // if both a taker and a racer were waiting a message
+    // the priority is given to the taker that will retrieve 
+    // the message
     if (isThereAlreadyAPendingTaker(ch)) {
       unwaitOldestPutter(ch);
       const msg = retrieveOldestMessage(ch);
       const taker = retrieveOldestTaker(ch);
       forwardMessage(taker, msg);
-    } 
-    
-    if (isThereAPendingRacer(ch)) {
+    } else if (isThereAPendingRacer(ch)) {
       const racer = retrieveOldestRacer(ch);
       fulfillTheRacer(racer, ch);
     }
