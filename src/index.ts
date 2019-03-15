@@ -29,12 +29,17 @@ function channel<T>(): Channel<T> {
 
 function put<T>(ch: Channel<T>, msg: T): Promise<void> {
   return new Promise(resolve => {
-    ch[messages].unshift(msg);
-    ch[putters].unshift(resolve);
-    if (ch[takers].length) {
-      ch[putters].pop()();
-      ch[takers].pop()(ch[messages].pop());
+    prependMessage(ch, msg);
+    waitATaker(ch, resolve);
+
+    if (isThereAlreadyAPendingTaker(ch)) {
+      unwaitOldestPutter(ch);
+      const msg = retrieveOldestMessage(ch);
+      const taker = retrieveOldestTaker(ch);
+      forwardMessage(taker, msg);
     }
+
+    // TODO
     if (ch[racers].length)
       ch[racers].pop()(ch);
   });
@@ -42,10 +47,13 @@ function put<T>(ch: Channel<T>, msg: T): Promise<void> {
 
 function take<T>(ch: Channel<T>): Promise<T> {
   return new Promise(resolve => {
-    ch[takers].unshift(resolve);
-    if (ch[putters].length) {
-      ch[putters].pop()();
-      ch[takers].pop()(ch[messages].pop());
+    waitAPutter(ch, resolve);
+
+    if (isThereAlreadyAPendingPutter(ch)) {
+      unwaitOldestPutter(ch);
+      const msg = retrieveOldestMessage(ch);
+      const taker = retrieveOldestTaker(ch);
+      forwardMessage(taker, msg);
     }
   });
 }
@@ -81,6 +89,35 @@ function drain<T>(ch: Channel<T>): Promise<T[]> {
 export { channel, put, take, alts, select, drain };
 
 /* private methods */
+
+function prependMessage<T>(ch: Channel<T>, msg: T): void {
+  ch[messages].unshift(msg);
+}
+function waitATaker<T>(ch: Channel<T>, resolve: () => void): void {
+  ch[putters].unshift(resolve);
+}
+function isThereAlreadyAPendingTaker<T>(ch: Channel<T>): boolean {
+  return !!ch[takers].length;
+}
+function unwaitOldestPutter<T>(ch: Channel<T>): void {
+  const resolve = ch[putters].pop()
+  resolve();
+}
+function retrieveOldestMessage<T>(ch: Channel<T>): T {
+  return ch[messages].pop();
+}
+function retrieveOldestTaker<T>(ch: Channel<T>): ((msg: T) => void) {
+  return ch[takers].pop();
+}
+function forwardMessage<T>(taker: (msg: T) => void, msg: T): void {
+  taker(msg);
+}
+function waitAPutter<T>(ch: Channel<T>, resolve: (msg: T) => void): void {
+  ch[takers].unshift(resolve);
+}
+function isThereAlreadyAPendingPutter<T>(ch: Channel<T>): boolean {
+  return !!ch[putters].length;
+}
 
 function race<T>(ch: Channel<T>): Promise<Channel<T>> {
   return new Promise(resolve => {
