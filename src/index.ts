@@ -85,8 +85,9 @@ function select<T>(chs: Selectable<T>): Promise<[any, T]> {
 
 function drain<T>(ch: Channel<T>): Promise<T[]> {
   const msgs = [];
-  while (ch[messages].length)
+  while (areThereMessages(ch)) {
     msgs.push(take(ch));
+  }
   return Promise.all(msgs);
 }
 
@@ -146,6 +147,9 @@ function isThereAPendingRacer<T>(ch: Channel<T>): boolean {
 }
 function removeLosersRacersFromTheirChannels<T>(chs: Channel<T>[]): void {
   chs.forEach(c => c[racers].pop());
+}
+function areThereMessages<T>(ch: Channel<T>): boolean {
+  return !!ch[messages].length;
 }
 
 
