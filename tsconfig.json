@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["es2018"],
+    "lib": [
+      "es2018"
+    ],
     "module": "None",
     "moduleResolution": "Node",
     "target": "ES2017",
@@ -13,5 +15,8 @@
     "downlevelIteration": true,
     "declaration": true
   },
-  "include": [ "src/**/*", "test/**/*" ]
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ]
 }
