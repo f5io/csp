@@ -61,7 +61,7 @@ function take<T>(ch: Channel<T>): Promise<T> {
 }
 
 async function alts<T>(...chs: Channel<T>[]): Promise<T> {
-  // transfrom each channel in a Promise that will fulfill when
+  // transform each channel in a Promise that will fulfill when
   // the corrisponding channel receive a message
   const racingChannels = chs.map(ch => race(ch));
 
@@ -77,7 +77,7 @@ async function alts<T>(...chs: Channel<T>[]): Promise<T> {
 }
 
 async function select<T>(sel: Selectable<T>): Promise<[any, T]> {
-  // transfrom each channel in a Promise that will fulfill when
+  // transform each channel in a Promise that will fulfill when
   // the corrisponding channel receive a message
   const racingChannels = map(sel, async (key, ch) => {
     const waitingRacer = race(ch);
@@ -187,8 +187,3 @@ function removeLosersRacersFromTheirChannels<T>(chs: Channel<T>[]): void {
 function areThereMessages<T>(ch: Channel<T>): boolean {
   return !!ch[messages].length;
 }
-
-
-
-
-
