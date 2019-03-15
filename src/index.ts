@@ -8,6 +8,7 @@ export type Channel<T> = {
   [putters]: (() => void)[];
   [takers]: ((msg: T) => void)[];
   [racers]: ((ch: Channel<T>) => void)[];
+  [Symbol.asyncIterator]: (() => AsyncIterableIterator<T>);
 };
 
 export type Selectable<T> =
@@ -24,8 +25,14 @@ function channel<T>(): Channel<T> {
     [putters]: [],
     [takers]: [],
     [racers]: [],
+    async *[Symbol.asyncIterator]() {
+      while (true) {
+        yield await take(this);
+      }
+    },
   };
 }
+
 
 function put<T>(ch: Channel<T>, msg: T): Promise<void> {
   return new Promise(resolve => {
