@@ -129,13 +129,38 @@ put(chan, 39);
 const msgs = await drain(chan); // will receive [ 42, 41, 40, 39 ]
 ```
 
+## Async Iteration Protocol
+Channels implement the async iterable interface, so you can transform the following example code:
+
+```javascript
+async function process (inbound, outbound) => {
+  while (true) {
+    const msg = await take(inbound);
+    // do stuff with msg
+    await put(outbound, res);
+  }
+};
+```
+
+into a cleaner version, thanks to the powerful `for-await-of`:
+
+```javascript
+async function process (inbound, outbound) => {
+  for await(const msg of inbound) {
+    // do stuff with msg
+    await put(outbound, res);
+  }
+};
+```
+
+
 ## Contributions
 
 Contributions are welcomed and appreciated!
 
 1. Fork this repository.
-1. Make your changes, documenting your new code with comments.
-1. Submit a pull request with a sane commit message.
+2. Make your changes, documenting your new code with comments.
+3. Submit a pull request with a sane commit message.
 
 Feel free to get in touch if you have any questions.
 
