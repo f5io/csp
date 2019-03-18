@@ -15,7 +15,13 @@ export type Selectable<T> =
   | { [k: string]: Channel<T> }
   | Map<any, Channel<T>>
   | Set<Channel<T>>
-  | Channel<T>[];
+  | Channel<T>[]
+
+export type SelectableP<T> =
+  | { [k: string]: Promise<Channel<T>> }
+  | Map<any, Promise<Channel<T>>>
+  | Set<Promise<Channel<T>>>
+  | Promise<Channel<T>>[];
 
 /* public methods */
 
@@ -86,20 +92,24 @@ async function alts<T>(...chs: Channel<T>[]): Promise<T> {
 async function select<T>(sel: Selectable<T>): Promise<[any, T]> {
   // transform each channel in a Promise that will fulfill when
   // the corrisponding channel receive a message
-  const racingChannels = map(sel, async (key, ch) => {
+  const racingSelectables = mapToPromise(sel, async ch => {
+    // waitingRacer is a promise that will resolve into the ch passed to race
     const waitingRacer = race(ch);
-    return [key, await waitingRacer];
-  })
+    return waitingRacer;
+  });
 
-  const [key, winningChannel] = await Promise.race(racingChannels);
+  const racingChannels = revertToArray(racingSelectables);
 
-  const losersChannels = revertSelectableToArrayOfChannels(filter(sel, c => c !== winningChannel));
+  const winningChannel = await Promise.race(racingChannels);
+  const winningChannelKey = keyOf(sel, winningChannel);
+
+
+  const losersChannels = revertToArray(filter(sel, ch => ch !== winningChannel));
   removeLosersRacersFromTheirChannels(losersChannels);
-
 
   unwaitOldestPutter(winningChannel);
   const msg = retrieveOldestMessage(winningChannel)
-  return [key, msg];
+  return [winningChannelKey, msg];
 
 }
 
@@ -125,15 +135,46 @@ function race<T>(ch: Channel<T>): Promise<Channel<T>> {
   });
 }
 
-function map<T>(sel: Selectable<T>, fn: (k: any, c: Channel<T>, ) => Promise<[any, Channel<T>]>): Promise<[any, Channel<T>]>[] {
+/*function map<T>(sel: Selectable<T>, fn: (c: Channel<T>) => Channel<T>): Selectable<T> {
   let res;
-  if (sel instanceof Set || sel instanceof Map) {
-    res = [...sel.entries()].map(([key, ch]) => fn(key, ch));
+  if (sel instanceof Map) {
+    const selEntries = [...sel.entries()];
+    res = new Map(selEntries.map(([key, ch]): [any, Channel<T>] => [key, fn(ch)]));
+  } else if (sel instanceof Set) {
+    res = new Set([...sel.values()].map(ch => fn(ch)));
   } else if (Array.isArray(sel)) {
-    res = sel.map((ch, key) => fn(key, ch));
+    res = sel.map(ch => fn(ch));
   } else {
     // plain js object
-    res = Object.entries(sel).map(([key, ch]) => fn(key, ch));
+
+    // to erase as soon as typescript supports es2019 features: use Object.fromEntries instead
+    const fromEntries = function fromEntries(iterable: any) {
+      return [...iterable]
+        .reduce((obj, { 0: key, 1: val }) => Object.assign(obj, { [key]: val }), {})
+    }
+    res = fromEntries(Object.entries(sel).map(([key, ch]) => [key, fn(ch)]));
+  }
+  return res;
+}*/
+
+function mapToPromise<T>(sel: Selectable<T>, fn: (c: Channel<T>) => Promise<Channel<T>>): SelectableP<T> {
+  let res;
+  if (sel instanceof Map) {
+    const selEntries = [...sel.entries()];
+    res = new Map(selEntries.map(([key, ch]): [any, Promise<Channel<T>>] => [key, fn(ch)]));
+  } else if (sel instanceof Set) {
+    res = new Set([...sel.values()].map((ch): Promise<Channel<T>> => fn(ch)));
+  } else if (Array.isArray(sel)) {
+    res = sel.map((ch): Promise<Channel<T>> => fn(ch));
+  } else {
+    // plain js object
+
+    // to erase as soon as typescript supports es2019 features: use Object.fromEntries instead
+    const fromEntries = function fromEntries(iterable: any) {
+      return [...iterable]
+        .reduce((obj, { 0: key, 1: val }) => Object.assign(obj, { [key]: val }), {})
+    }
+    res = fromEntries(Object.entries(sel).map(([key, ch]): [string, Promise<Channel<T>>] => [key, fn(ch)]));
   }
   return res;
 }
@@ -154,12 +195,12 @@ function filter<T>(sel: Selectable<T>, predicate: (c: Channel<T>) => boolean): S
     res = filteredValues;
   } else {
     // plain js object
-    
+
     // use it as soon as typescript supports es2019 features
     // res = Object.fromEntries(Object.entries(sel).filter(([, value]) => predicate(value)));
 
     // to erase as soon as typescript supports es2019 features
-    function fromEntries(iterable: any) {
+    const fromEntries = function fromEntries(iterable: any) {
       return [...iterable]
         .reduce((obj, { 0: key, 1: val }) => Object.assign(obj, { [key]: val }), {})
     }
@@ -169,8 +210,27 @@ function filter<T>(sel: Selectable<T>, predicate: (c: Channel<T>) => boolean): S
   return res;
 }
 
+function keyOf<T>(sel: Selectable<T>, searchedCh: Channel<T>): any {
+  let res;
+  if (sel instanceof Map) {
+    const selEntries = [...sel.entries()];
+    const [key] = selEntries.find(([, ch]) => ch === searchedCh);
+    res = key;
+  } else if (sel instanceof Set) {
+    res = searchedCh;
+  } else if (Array.isArray(sel)) {
+    res = sel.findIndex(ch => ch === searchedCh);
+  } else {
+    // plain js object
+    const selEntries = Object.entries(sel);
+    const [key] = selEntries.find(([, ch]) => ch === searchedCh);
+    res = key;
+  }
+  return res;
+}
 
-function revertSelectableToArrayOfChannels<T>(sel: Selectable<T>): Channel<T>[] {
+
+function revertToArray<T>(sel: Selectable<T> | SelectableP<T>): Channel<T>[] {
   let res;
   if ((sel instanceof Set) || (sel instanceof Map) || (Array.isArray(sel))) {
     res = [...sel.values()];
