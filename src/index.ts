@@ -93,7 +93,7 @@ async function select<T>(sel: Selectable<T>): Promise<[any, T]> {
 
   const [key, winningChannel] = await Promise.race(racingChannels);
 
-  const losersChannels = filterAndRevertToArrayOfChannels(sel, c => c !== winningChannel);
+  const losersChannels = revertSelectableToArrayOfChannels(filter(sel, c => c !== winningChannel));
   removeLosersRacersFromTheirChannels(losersChannels);
 
 
@@ -132,17 +132,51 @@ function map<T>(sel: Selectable<T>, fn: (k: any, c: Channel<T>, ) => Promise<[an
   } else if (Array.isArray(sel)) {
     res = sel.map((ch, key) => fn(key, ch));
   } else {
+    // plain js object
     res = Object.entries(sel).map(([key, ch]) => fn(key, ch));
   }
   return res;
 }
 
-function filterAndRevertToArrayOfChannels<T>(sel: Selectable<T>, predicate: (c: Channel<T>) => boolean): Channel<T>[] {
+function filter<T>(sel: Selectable<T>, predicate: (c: Channel<T>) => boolean): Selectable<T> {
+  let res;
+  if (sel instanceof Set) {
+    const values = [...sel.values()];
+    const filteredValues = values.filter(predicate);
+    res = new Set(filteredValues);
+  } else if (sel instanceof Map) {
+    const entries = [...sel.entries()];
+    const filteredEntries = entries.filter(([, value]) => predicate(value));
+    res = new Map(filteredEntries);
+  } else if (Array.isArray(sel)) {
+    const values = [...sel.values()];
+    const filteredValues = values.filter(predicate);
+    res = filteredValues;
+  } else {
+    // plain js object
+    
+    // use it as soon as typescript supports es2019 features
+    // res = Object.fromEntries(Object.entries(sel).filter(([, value]) => predicate(value)));
+
+    // to erase as soon as typescript supports es2019 features
+    function fromEntries(iterable: any) {
+      return [...iterable]
+        .reduce((obj, { 0: key, 1: val }) => Object.assign(obj, { [key]: val }), {})
+    }
+
+    res = fromEntries(Object.entries(sel).filter(([, value]) => predicate(value)));
+  }
+  return res;
+}
+
+
+function revertSelectableToArrayOfChannels<T>(sel: Selectable<T>): Channel<T>[] {
   let res;
   if ((sel instanceof Set) || (sel instanceof Map) || (Array.isArray(sel))) {
-    res = [...sel.values()].filter(predicate);
+    res = [...sel.values()];
   } else {
-    res = Object.values(sel).filter(predicate);
+    // plain js object
+    res = Object.values(sel);
   }
   return res;
 }
