@@ -1,5 +1,6 @@
 import * as test from 'tape';
 import { Channel } from '../src';
+import '../src/operators/map';
 
 type Input = string | number;
 
@@ -12,7 +13,6 @@ test('[csp] channel', t => {
   const chan = new Channel<number>();
   t.equal(Object.getOwnPropertySymbols(chan.getInnerChannel()).length, 4, 'should contain 4 symbol properties');
   t.equal(Object.getOwnPropertySymbols(Object.getPrototypeOf(chan)).length, 1, 'should contain 1 symbol properties');
-  t.equal(Object.keys(chan).length, 1, 'should expose 1 properties normally');
   t.end();
 });
 
@@ -201,5 +201,14 @@ test('[csp] select Set, chan2 ready', async t => {
   const [id, res] = await result;
   t.equal(id, chan2, 'should receive the correct id');
   t.equal(res, m, 'should receive the correct value');
+  t.end();
+});
+
+test('[csp] operator map', async t => {
+  const chan = new Channel<number>();
+  const m = msg();
+  chan.put(m);
+  const res = await chan.map(m => 10*m).take();
+  t.equal(res, m*10, 'should resolve the correct value');
   t.end();
 });
