@@ -7,6 +7,7 @@ interface ChannelWrapper<T> {
     put(msg: T): Promise<void>;
     take(): Promise<T>;
     drain(): Promise<T[]>;
+    [Symbol.asyncIterator]: (() => AsyncIterableIterator<T>);
 }
 
 // exported class
@@ -17,8 +18,8 @@ class ChannelWrapperImp<T> implements ChannelWrapper<T>{
         return this.__ch__;
     }
 
-    constructor() {
-        this.__ch__ = new ChannelImp<T>();
+    constructor(ch: ChannelImp<T> = new ChannelImp<T>()) {
+        this.__ch__ = ch;
     }
 
     put(msg: T): Promise<void> {
@@ -33,14 +34,20 @@ class ChannelWrapperImp<T> implements ChannelWrapper<T>{
         return this.__ch__.drain();
     }
 
+    async *[Symbol.asyncIterator]() {
+        yield* this.__ch__;
+    }
+
     static alts<S>(...chs: ChannelWrapper<S>[]): Promise<S> {
         const channels = chs.map(ch => ch.getInnerChannel());
         return alts<S>(...channels);
     }
 
-    static select<S>(sel: { [k: string]: ChannelWrapper<S> } | Map<any, ChannelWrapper<S>> | Set<ChannelWrapper<S>> | ChannelWrapper<S>[]): Promise<[any, S]> {
-        // convert from Selectable of ChannelWrapper<S> to Selectable of Channel<S>
+    static async select<S>(sel: { [k: string]: ChannelWrapper<S> } | Map<any, ChannelWrapper<S>> | Set<ChannelWrapper<S>> | ChannelWrapper<S>[]): Promise<[any, S]> {
+        // convert ChannelWrapper<S> into Channel<S>
+        // because Selectable works only with the latterone
         let res;
+
         if (sel instanceof Map) {
             const selEntries = [...sel.entries()];
             res = new Map(selEntries.map(([key, ch]): [any, Channel<S>] => [key, ch.getInnerChannel()]));
@@ -59,10 +66,19 @@ class ChannelWrapperImp<T> implements ChannelWrapper<T>{
             res = fromEntries(Object.entries(sel).map(([key, ch]): [string, Channel<S>] => [key, ch.getInnerChannel()]));
         }
 
-        return select<S>(new SelectableImp<S>(res));
+        let selectRes = await select<S>(new SelectableImp<S>(res));
+        if (sel instanceof Set) {
+            // selectRes = [keyOfWinnerChannel, msg]
+            // the key of the winner channel contained in a Set have to be the channel itself but
+            // selectRes[0] contains an instance of Channel. We need the initial instance of ChannelWrapper
+            // that wraps the winner instance of Channel
+            selectRes[0] = [...sel.values()].find((value) => value.getInnerChannel() === selectRes[0])
+        } 
+        return selectRes;
     }
 }
 
 export {
-    ChannelWrapperImp
+    ChannelWrapperImp,
+    ChannelWrapper
 };

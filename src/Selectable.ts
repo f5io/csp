@@ -4,7 +4,7 @@ interface Selectable<T> {
     sel: { [k: string]: Channel<T> } | Map<any, Channel<T>> | Set<Channel<T>> | Channel<T>[];
     mapToPromise(fn: (c: Channel<T>) => Promise<Channel<T>>): SelectableP<T>;
     revertToArray(): Channel<T>[];
-    map(fn: (c: Channel<T>) => Channel<T>): Selectable<T>;
+    // map(fn: (c: Channel<T>) => Channel<T>): Selectable<T>;
     filter(predicate: (c: Channel<T>) => boolean): Selectable<T>;
     keyOf(searchedCh: Channel<T>): any;
 }
@@ -19,6 +19,7 @@ class SelectableImp<T> implements Selectable<T> {
     constructor(public sel: { [k: string]: Channel<T> } | Map<any, Channel<T>> | Set<Channel<T>> | Channel<T>[]) {
     }
 
+    /* we don't need it yet, but she is ready
     map(fn: (c: Channel<T>) => Channel<T>): Selectable<T> {
         let res;
         if (this.sel instanceof Map) {
@@ -39,7 +40,7 @@ class SelectableImp<T> implements Selectable<T> {
             res = fromEntries(Object.entries(this.sel).map(([key, ch]) => [key, fn(ch)]));
         }
         return new SelectableImp<T>(res);
-    }
+    }*/
 
     mapToPromise(fn: (c: Channel<T>) => Promise<Channel<T>>): SelectableP<T> {
         let res;

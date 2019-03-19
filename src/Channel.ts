@@ -34,6 +34,13 @@ class ChannelImp<T> implements Channel<T> {
     [takers]: Array<((msg: T) => void)>;
     [racers]: Array<((ch: Channel<T>) => void)>;
 
+    constructor() {
+        this[messages] = [];
+        this[putters] = [];
+        this[takers] = [];
+        this[racers] = [];
+    }
+
     async *[Symbol.asyncIterator]() {
         while (true) {
             yield await this.take();
