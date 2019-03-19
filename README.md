@@ -23,121 +23,119 @@ $ yarn add @paybase/csp
 Below is a trivial example of usage, that plays on the standard ping-pong example.
 
 ```javascript
-const { channel, put, take } = require('@paybase/csp');
+const { Channel } = require('@paybase/csp');
 
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const wiff = channel();
-const waff = channel();
+const wiff = new Channel();
+const waff = new Channel();
 
 const createBall = () => ({ hits: 0, status: '' });
 
 const createBat = async (inbound, outbound) => {
   while (true) {
-    const ball = await take(inbound); // wait for an incoming ball
+    const ball = await inbound.take(); // wait for an incoming ball
     ball.hits++;
     ball.status = ball.status === 'wiff!' ? 'waff!' : 'wiff!';
     console.log(`🎾  Ball hit ${ball.hits} time(s), ${ball.status}`);
     await timeout(500); // assume it's going to take a bit to hit the ball
-    await put(outbound, ball); // smash the ball back
+    await outbound.put(ball); // smash the ball back
   }
 };
 
 createBat(waff, wiff); // create a bat that will wiff waffs
 createBat(wiff, waff); // create a bat that will waff wiffs
 
-put(waff, createBall());
+waff.put(createBall());
 ```
 
 ![ping pong](/assets/pingpong.gif?raw=true)
 
 ## API
 
-This library exposes 5 functions and one factory.
 
-### `channel()`
+### `Channel()`
 
-This factory method constructs a new `channel` and returns it. A channel contains no publicly accessible properties, but contains information about interactions with the `channel`.
+This constructor constructs a new `channel` and returns it. A channel exposes some methods to interact with it.
 
 ```javascript
-const chan = channel();
+const chan = new Channel();
 ```
 
-### `put(channel, message)` -> `Promise`
+### `channel.put(message)` -> `Promise`
 
-The `put` function requires the `channel` on which to put the supplied `message`. The `put` method returns a `Promise` which can be optionally awaited and will resolve when something is ready to take the `message` from the `channel`.
+The `put` method takes a `message` and put it into the channel on which it was called. The `put` method returns a `Promise` which can be optionally awaited and will resolve when something is ready to take the `message` from the `channel`.
 
 ```javascript
-const chan = channel();
-put(chan, 42);
+const chan = new Channel();
+chan.put(42);
 
 // ...or...
 
-await put(chan, 42);
+await chan.put(42);
 ```
 
-### `take(channel)` -> `Promise`
+### `channel.take()` -> `Promise`
 
-The `take` function requires the `channel` to take from. The `take` method returns a `Promise` which should always be awaited and will resolve with a message, when a message is available.
+The `take` method requires no arguments. The `take` method returns a `Promise` which should always be awaited and will resolve with a message, when a message is available.
 
 ```javascript
-const chan = channel();
+const chan = new Channel();
+chan.put(42);
 
-put(chan, 42);
-
-const msg = await take(chan); // will receive 42
+const msg = await chan.take(); // will receive 42
 ```
 
-### `alts(...channels)` -> `Promise`
+### `Channel.alts(...channels)` -> `Promise`
 
-The `alts` function will race taking values from multiple `channels`.
+The `alts` static method will race taking values from multiple `channels`.
 
 ```javascript
-const chan1 = channel();
-const chan2 = channel();
+const chan1 = new Channel();
+const chan2 = new Channel();
 
-put(chan2, 42);
-const msg = await alts(chan1, chan2); // will receive 42
+chan2.put(42);
+const msg = await Channel.alts(chan1, chan2); // will receive 42
 ```
 
-### `select(Map<*, channel>|Set<channel>|Array<channel>|Object<string, channel>)` -> `Promise`
+### `Channel.select(Map<*, channel>|Set<channel>|Array<channel>|Object<string, channel>)` -> `Promise`
 
-The `select` function will race taking values from multiple `channels`, similar to `alts`, but will also return the key of the channel that was selected.
+The `select` static method will race taking values from multiple `channels`, similar to `alts`, but will also return the key of the channel that was selected.
 
 ```javascript
-const chan1 = channel();
-const chan2 = channel();
+const chan1 = new Channel();
+const chan2 = new Channel();
 
-put(chan2, 42);
+chan2.put(42);
 const channels = [chan1, chan2];
-const result = await select(channels); // will receive [1, 42]
+const result = await Channel.select(channels); // will receive [1, 42]
 ```
 
 Works with `Map` and `Set` as well as with plain-old javascript arrays and objects.
 
-### `drain(channel)` -> `Promise`
+### `Channel.drain(channel)` -> `Promise`
 
-The `drain` function requires a `channel` which it will drain all messages from until empty, returning an array of messages.
+The `drain` static method requires a `channel` which it will drain all messages from until empty, returning an array of messages.
 
 ```javascript
-const chan = channel();
-put(chan, 42);
-put(chan, 41);
-put(chan, 40);
-put(chan, 39);
+const chan = new Channel();
+chan.put(42);
+chan.put(41);
+chan.put(40);
+chan.put(39);
 
-const msgs = await drain(chan); // will receive [ 42, 41, 40, 39 ]
+const msgs = await Channel.drain(chan); // will receive [ 42, 41, 40, 39 ]
 ```
 
 ## Async Iteration Protocol
-Channels implement the async iterable interface, so you can transform the following example code:
+Channels implement the async iterable interface, so you can transform the following illustrative code:
 
 ```javascript
 async function process (inbound, outbound) => {
   while (true) {
-    const msg = await take(inbound);
+    const msg = await inbound.take();
     // do stuff with msg
-    await put(outbound, res);
+    await outbound.put(res);
   }
 };
 ```
@@ -148,7 +146,7 @@ into a cleaner version, thanks to the powerful `for-await-of`:
 async function process (inbound, outbound) => {
   for await(const msg of inbound) {
     // do stuff with msg
-    await put(outbound, res);
+    await outbound.put(res);
   }
 };
 ```
