@@ -8,6 +8,7 @@ import '../src/operators/fromIterableDelayed';
 import '../src/operators/fromAsyncIterable';
 import '../src/operators/fromAsyncIterableDelayed';
 import '../src/operators/pipe';
+import '../src/operators/broadcast';
 
 type Input = string | number;
 
@@ -375,5 +376,25 @@ test('[csp] mergeDelayed', async t => {
   await timeout(0);
 
   t.deepEqual((await result.drain()).length, 2, 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] operator broadcast', async t => {
+
+  
+
+  const source = new Channel();
+  const dest1 = new Channel();
+  const dest2 = new Channel();
+  const dest3 = new Channel();
+
+  source.broadcast(dest1, dest2, dest3);
+
+  const m = msg();
+  await source.put(m);
+
+  t.equal(await dest1.take(), m, 'should resolve the correct value');
+  t.equal(await dest2.take(), m, 'should resolve the correct value');
+  t.equal(await dest3.take(), m, 'should resolve the correct value');
   t.end();
 });
