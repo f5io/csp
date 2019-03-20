@@ -1,29 +1,24 @@
-# @paybase/csp
+# @jfet/csp
 
-A library for Communicating Sequential Processes in Node.js, built on top of `async/await`.
+A library for Communicating Sequential Processes, built on top of `async/await` and the asynchronous iterable interface.
 
-[![npm version](https://badge.fury.io/js/%40paybase%2Fcsp.svg)](https://badge.fury.io/js/%40paybase%2Fcsp)
+[![npm version](https://badge.fury.io/js/%40jfet%2Fcsp.svg)](https://badge.fury.io/js/%40jfet%2Fcsp)
 
 ## Installation
 
-This library requires `async/await` support in your Node.js runtime, so ideally `node>=7.4`.
+This library requires `async/await` and `for-await-of` support.
 
 ```
-$ npm install --save @paybase/csp
+$ npm install --save @jfet/csp
 ```
 
-or
-
-```
-$ yarn add @paybase/csp
-```
 
 ## Example Usage
 
 Below is a trivial example of usage, that plays on the standard ping-pong example.
 
 ```javascript
-const { Channel } = require('@paybase/csp');
+const { Channel } = require('@jfet/csp');
 
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
