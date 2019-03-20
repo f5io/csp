@@ -318,7 +318,8 @@ test('[csp] operator pipe', async t => {
   const dest = new Channel();
 
   // pipe the channels
-  source.pipe(dest);
+  const resCh = source.pipe(dest);
+  t.equal(resCh, dest, 'should resolve the correct value');
 
   // put three numbers into the source
   source.fromIterable([1,2,3]);
@@ -331,5 +332,6 @@ test('[csp] operator pipe', async t => {
   t.deepEqual(await dest.drain(), [2], 'should resolve the correct value');
   await timeout(0);
   t.deepEqual(await dest.drain(), [3], 'should resolve the correct value');
+
   t.end();
 });
