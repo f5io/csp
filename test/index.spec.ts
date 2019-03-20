@@ -3,6 +3,8 @@ import { Channel } from '../src';
 import '../src/operators/map';
 import '../src/operators/filter';
 import '../src/operators/delay';
+import '../src/operators/fromIterable';
+import '../src/operators/fromIterableDelayed';
 
 type Input = string | number;
 
@@ -210,8 +212,8 @@ test('[csp] operator map', async t => {
   const chan = new Channel<number>();
   const m = msg();
   chan.put(m);
-  const res = await chan.map(v => 10*v).take();
-  t.equal(res, m*10, 'should resolve the correct value');
+  const res = await chan.map(v => 10 * v).take();
+  t.equal(res, m * 10, 'should resolve the correct value');
   t.end();
 });
 
@@ -237,6 +239,34 @@ test('[csp] operator delay', async t => {
   const later = process.hrtime()[0];
   const timeDifferenceInSeconds = later - now;
   t.equal(timeDifferenceInSeconds >= 3, true, 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] operator fromIterable', async t => {
+  const chan = new Channel<number>();
+  const iterable = [1, 2, 3];
+  chan.fromIterable(iterable);
+  t.equal(await chan.take(), 1, 'should resolve the correct value');
+  t.equal(await chan.take(), 2, 'should resolve the correct value');
+  t.equal(await chan.take(), 3, 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] operator fromIterableDelayed', async t => {
+  const chan = new Channel<number>();
+  const iterable = {
+    *[Symbol.iterator]() {
+      let i = 0;
+      while(true) {
+        yield i++;
+      }
+    }
+  };
+  chan.fromIterableDelayed(iterable);
+  t.equal(await chan.take(), 0, 'should resolve the correct value');
+  t.equal(await chan.take(), 1, 'should resolve the correct value');
+  t.equal(await chan.take(), 2, 'should resolve the correct value');
+  t.equal(await chan.take(), 3, 'should resolve the correct value');
   t.end();
 });
 
