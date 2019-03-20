@@ -1,6 +1,6 @@
 import { ChannelWrapper, ChannelWrapperImp } from '../ChannelWrapper';
 
-// as soon as a value is available, put it immediately into the input (this) channel
+// as soon as a value is available, put it immediately into the output (this) channel
 function fromAsyncIterable<T>(this: ChannelWrapper<T>, ait: AsyncIterable<T>): ChannelWrapper<T> {
     
     (async () => {
