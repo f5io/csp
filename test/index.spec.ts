@@ -1,6 +1,7 @@
 import * as test from 'tape';
 import { Channel } from '../src';
 import '../src/operators/map';
+import '../src/operators/filter';
 
 type Input = string | number;
 
@@ -208,7 +209,21 @@ test('[csp] operator map', async t => {
   const chan = new Channel<number>();
   const m = msg();
   chan.put(m);
-  const res = await chan.map(m => 10*m).take();
+  const res = await chan.map(v => 10*v).take();
   t.equal(res, m*10, 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] operator filter', async t => {
+  const chan = new Channel<number>();
+  chan.put(1);
+  chan.put(2);
+  chan.put(3);
+  chan.put(4);
+  const resCh = chan.filter(v => Boolean(v%2));
+  const v1 = await resCh.take();
+  const v2 = await resCh.take();
+  t.equal(v1, 1, 'should resolve the correct value');
+  t.equal(v2, 3, 'should resolve the correct value');
   t.end();
 });
