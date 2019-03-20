@@ -2,6 +2,7 @@ import * as test from 'tape';
 import { Channel } from '../src';
 import '../src/operators/map';
 import '../src/operators/filter';
+import '../src/operators/delay';
 
 type Input = string | number;
 
@@ -220,10 +221,22 @@ test('[csp] operator filter', async t => {
   chan.put(2);
   chan.put(3);
   chan.put(4);
-  const resCh = chan.filter(v => Boolean(v%2));
+  const resCh = chan.filter(v => Boolean(v % 2));
   const v1 = await resCh.take();
   const v2 = await resCh.take();
   t.equal(v1, 1, 'should resolve the correct value');
   t.equal(v2, 3, 'should resolve the correct value');
   t.end();
 });
+
+test('[csp] operator delay', async t => {
+  const chan = new Channel<number>();
+  chan.put(1);
+  const now = process.hrtime()[0];
+  await chan.delay(3000).take();
+  const later = process.hrtime()[0];
+  const timeDifferenceInSeconds = later - now;
+  t.equal(timeDifferenceInSeconds >= 3, true, 'should resolve the correct value');
+  t.end();
+});
+
