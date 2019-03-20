@@ -260,7 +260,7 @@ test('[csp] operator fromIterableDelayed', async t => {
   const iterable = {
     *[Symbol.iterator]() {
       let i = 0;
-      while(true) {
+      while (true) {
         yield i++;
       }
     }
@@ -279,7 +279,7 @@ test('[csp] operator fromAsyncIterable', async t => {
   const chan = new Channel<number>();
   const asyncIterable = {
     async *[Symbol.asyncIterator]() {
-        yield* [1,2,3,4,5];
+      yield* [1, 2, 3, 4, 5];
     }
   };
   chan.fromAsyncIterable(asyncIterable);
@@ -288,7 +288,7 @@ test('[csp] operator fromAsyncIterable', async t => {
   // the channel, so after a null timeout (needed by how microtasks are resolved) we can drain
   // all the remaining values from the channel
   await timeout(0);
-  t.deepEqual(await chan.drain(), [2,3,4,5], 'should resolve the correct value');
+  t.deepEqual(await chan.drain(), [2, 3, 4, 5], 'should resolve the correct value');
   t.end();
 });
 
@@ -313,7 +313,7 @@ test('[csp] operator fromAsyncIterableDelayed', async t => {
 
 test('[csp] operator pipe', async t => {
   const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-  
+
   const source = new Channel();
   const dest = new Channel();
 
@@ -322,7 +322,7 @@ test('[csp] operator pipe', async t => {
   t.equal(resCh, dest, 'should resolve the correct value');
 
   // put three numbers into the source
-  source.fromIterable([1,2,3]);
+  source.fromIterable([1, 2, 3]);
 
   // before the next value is taken from the source channel, pipe() will await 
   // a take operation (implicitily contained into the drain() method)
@@ -333,5 +333,47 @@ test('[csp] operator pipe', async t => {
   await timeout(0);
   t.deepEqual(await dest.drain(), [3], 'should resolve the correct value');
 
+  t.end();
+});
+
+test('[csp] merge', async t => {
+  
+  const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const chan1 = new Channel();
+  const chan2 = new Channel();
+
+  const result = Channel.merge(chan1, chan2);
+
+  chan1.fromIterable([1, 2, 3]);
+  chan2.fromIterable([4, 5, 6]);
+
+  // thanks to the following await, the execution of the current async function can be paused
+  // to start the flow of values from chan1 and chan2 to result
+  await timeout(0);
+
+  t.deepEqual((await result.drain()).length, 6, 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] mergeDelayed', async t => {
+
+  const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const chan1 = new Channel();
+  const chan2 = new Channel();
+
+  const result = Channel.mergeDelayed(chan1, chan2);
+
+  chan1.fromIterable([1, 2, 3]);
+  chan2.fromIterable([4, 5, 6]);
+
+  // thanks to the following await, the execution of the current async function can be paused
+  // to start the flow of values from chan1 and chan2 to result
+  // but thanks to mergeDelayed only the first value contained in chan1 and the first value
+  // contained in chan2 will flow into result
+  await timeout(0);
+
+  t.deepEqual((await result.drain()).length, 2, 'should resolve the correct value');
   t.end();
 });

@@ -76,6 +76,43 @@ class ChannelWrapperImp<T> implements ChannelWrapper<T>{
         } 
         return selectRes;
     }
+
+    // as soon as a value is available from one of the input channels, put it immediately into the output channel
+    static merge<S>(...chs: ChannelWrapper<S>[]): ChannelWrapper<S> {
+        
+        const outCh = new ChannelWrapperImp<S>();
+
+        const mergeProcessFactory = async (source: ChannelWrapper<S>) => {
+            for await( const msg of source) {
+                outCh.put(msg);
+            }
+        }
+
+        for(const ch of chs) {
+            mergeProcessFactory(ch);
+        }
+
+        return outCh;
+    }
+
+    // before request the next value from one of the input channels, each process will wait the take operation
+    // that will be (eventually) performed on the just inserted message
+    static mergeDelayed<S>(...chs: ChannelWrapper<S>[]): ChannelWrapper<S> {
+
+        const outCh = new ChannelWrapperImp<S>();
+
+        const mergeProcessFactory = async (source: ChannelWrapper<S>) => {
+            for await (const msg of source) {
+                await outCh.put(msg);
+            }
+        }
+
+        for (const ch of chs) {
+            mergeProcessFactory(ch);
+        }
+
+        return outCh;
+    }
 }
 
 export {
