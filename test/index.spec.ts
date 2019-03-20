@@ -5,6 +5,8 @@ import '../src/operators/filter';
 import '../src/operators/delay';
 import '../src/operators/fromIterable';
 import '../src/operators/fromIterableDelayed';
+import '../src/operators/fromAsyncIterable';
+import '../src/operators/fromAsyncIterableDelayed';
 
 type Input = string | number;
 
@@ -270,3 +272,40 @@ test('[csp] operator fromIterableDelayed', async t => {
   t.end();
 });
 
+test('[csp] operator fromAsyncIterable', async t => {
+  const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const chan = new Channel<number>();
+  const asyncIterable = {
+    async *[Symbol.asyncIterator]() {
+        yield* [1,2,3,4,5];
+    }
+  };
+  chan.fromAsyncIterable(asyncIterable);
+  t.equal(await chan.take(), 1, 'should resolve the correct value');
+  // fromAsyncIterable() does not wait the take operations before inserting new values into
+  // the channel, so after a null timeout (needed by how microtasks are resolved) we can drain
+  // all the remaining values from the channel
+  await timeout(0);
+  t.deepEqual(await chan.drain(), [2,3,4,5], 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] operator fromAsyncIterableDelayed', async t => {
+  const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const chan = new Channel<number>();
+  const asyncIterable = {
+    async *[Symbol.asyncIterator]() {
+      yield* [1, 2, 3, 4, 5];
+    }
+  };
+  chan.fromAsyncIterableDelayed(asyncIterable);
+  t.equal(await chan.take(), 1, 'should resolve the correct value');
+  // fromAsyncIterableDelayed() does wait the take operations before inserting new values into
+  // the channel, so after a null timeout (needed by how microtasks are resolved) we can drain
+  // only the next value, 2
+  await timeout(0);
+  t.deepEqual(await chan.drain(), [2], 'should resolve the correct value');
+  t.end();
+});
