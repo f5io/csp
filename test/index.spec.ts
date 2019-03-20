@@ -7,6 +7,7 @@ import '../src/operators/fromIterable';
 import '../src/operators/fromIterableDelayed';
 import '../src/operators/fromAsyncIterable';
 import '../src/operators/fromAsyncIterableDelayed';
+import '../src/operators/pipe';
 
 type Input = string | number;
 
@@ -307,5 +308,28 @@ test('[csp] operator fromAsyncIterableDelayed', async t => {
   // only the next value, 2
   await timeout(0);
   t.deepEqual(await chan.drain(), [2], 'should resolve the correct value');
+  t.end();
+});
+
+test('[csp] operator pipe', async t => {
+  const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  
+  const source = new Channel();
+  const dest = new Channel();
+
+  // pipe the channels
+  source.pipe(dest);
+
+  // put three numbers into the source
+  source.fromIterable([1,2,3]);
+
+  // before the next value is taken from the source channel, pipe() will await 
+  // a take operation (implicitily contained into the drain() method)
+  await timeout(0);
+  t.deepEqual(await dest.drain(), [1], 'should resolve the correct value');
+  await timeout(0);
+  t.deepEqual(await dest.drain(), [2], 'should resolve the correct value');
+  await timeout(0);
+  t.deepEqual(await dest.drain(), [3], 'should resolve the correct value');
   t.end();
 });
