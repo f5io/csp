@@ -1,8 +1,6 @@
 rules:
   indent:
-    - 2
-    - 2
-    - SwitchCase: 1
+    - off
   quotes:
     - 2
     - single
@@ -39,15 +37,22 @@ rules:
     - 2
     - before: true
       after: true
-  typescript/no-unused-vars:
-    - 2
   no-undef:
     - 0
-  typescript/type-annotation-spacing:
+  "@typescript-eslint/indent":
     - 2
-parser: "typescript-eslint-parser"
+    - 2
+  "@typescript-eslint/no-unused-vars":
+    - 2
+  "@typescript-eslint/type-annotation-spacing":
+    - 2
+  "@typescript-eslint/no-explicit-any":
+    - 0
+  "@typescript-eslint/explicit-function-return-type":
+    - 0
+parser: "@typescript-eslint/parser"
 plugins:
-  - "typescript"
+  - "@typescript-eslint"
 parserOptions:
   ecmaVersion: 2017
   ecmaFeatures:
@@ -58,3 +63,4 @@ env:
   node: true
 extends:
   - eslint:recommended
+  - plugin:@typescript-eslint/recommended
