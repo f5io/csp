@@ -10,7 +10,7 @@ const msg = (() => {
 
 test('[csp] channel', t => {
   const chan = channel<number>();
-  t.equal(Object.getOwnPropertySymbols(chan).length, 4, 'should contain 4 symbol properties');
+  t.equal(Object.getOwnPropertySymbols(chan).length, 5, 'should contain 5 symbol properties');
   t.equal(Object.keys(chan).length, 0, 'should not expose properties normally');
   t.end();
 });
@@ -191,5 +191,15 @@ test('[csp] select Set, chan2 ready', async t => {
   const [ id, res ] = await result;
   t.equal(id, chan2, 'should receive the correct id');
   t.equal(res, m, 'should receive the correct value');
+  t.end();
+});
+
+test('[csp] AsyncIterable', async t => {
+  const chan = channel<string>();
+  put(chan, 'foo');
+  for await (const m of chan) {
+    t.equals(m, 'foo', 'should return the correct value');
+    break;
+  }
   t.end();
 });
