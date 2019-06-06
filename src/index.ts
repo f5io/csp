@@ -3,11 +3,12 @@ const putters = Symbol('putters');
 const takers = Symbol('takers');
 const racers = Symbol('racers');
 
-export interface Channel<T> {
+export type Channel<T> = {
   [messages]: T[];
   [putters]: (() => void)[];
   [takers]: ((msg: T) => void)[];
   [racers]: ((ch: Channel<T>) => void)[];
+  [Symbol.asyncIterator]: (() => AsyncIterableIterator<T>);
 }
 
 export type Selectable<T> =
@@ -58,6 +59,11 @@ function channel<T>(): Channel<T> {
     [putters]: [],
     [takers]: [],
     [racers]: [],
+    async *[Symbol.asyncIterator]() {
+      while (true) {
+        yield await take(this);
+      }
+    }
   };
 }
 
