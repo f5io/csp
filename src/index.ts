@@ -17,6 +17,9 @@ export type Selectable<T> =
   | Set<Channel<T>>
   | Channel<T>[];
 
+export type IterablePromise<T> =
+  & Promise<T>
+  & { [Symbol.asyncIterator]: (() => AsyncIterableIterator<T>) };
 
 /* private methods */
 
@@ -80,35 +83,62 @@ function put<T>(ch: Channel<T>, msg: T): Promise<void> {
   });
 }
 
-function take<T>(ch: Channel<T>): Promise<T> {
-  return new Promise(resolve => {
+function take<T>(ch: Channel<T>): IterablePromise<T> {
+  const promise = new Promise(resolve => {
     ch[takers].unshift(resolve);
     if (ch[putters].length) {
       ch[putters].pop()();
       ch[takers].pop()(ch[messages].pop());
     }
   });
+
+  return Object.assign(promise, {
+    async *[Symbol.asyncIterator]() {
+      yield await promise;
+      while (true) {
+        yield await take(ch);
+      }
+    }
+  }) as IterablePromise<T>;
 }
 
-function alts<T>(...chs: Channel<T>[]): Promise<T> {
-  return Promise
+function alts<T>(...chs: Channel<T>[]): IterablePromise<T> {
+  const promise = Promise
     .race(chs.map(ch => race(ch)))
     .then(ch => {
       chs.forEach(c => c !== ch && c[racers].pop());
       ch[putters].pop()();
       return ch[messages].pop();
     });
+
+  return Object.assign(promise, {
+    async *[Symbol.asyncIterator]() {
+      yield await promise;
+      while (true) {
+        yield await alts(...chs);
+      }
+    }
+  }) as IterablePromise<T>;
 }
 
-function select<T>(chs: Selectable<T>): Promise<[any, T]> {
-  return Promise
+function select<T>(chs: Selectable<T>): IterablePromise<[any, T]> {
+  const promise = Promise
     .race(map(chs, (ch, key) =>
       race(ch).then(result => [ key, result ]) as Promise<[any, Channel<T>]>))
     .then(([ key, ch ]) => {
       forEach(chs, c => c !== ch && c[racers].pop());
       ch[putters].pop()();
       return [ key, ch[messages].pop() ];
-    }) as Promise<[any, T]>;
+    });
+
+  return Object.assign(promise, {
+    async *[Symbol.asyncIterator]() {
+      yield await promise;
+      while (true) {
+        yield await select(chs);
+      }
+    }
+  }) as IterablePromise<[any, T]>;
 }
 
 function drain<T>(ch: Channel<T>): Promise<T[]> {

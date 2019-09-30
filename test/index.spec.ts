@@ -194,12 +194,60 @@ test('[csp] select Set, chan2 ready', async t => {
   t.end();
 });
 
-test('[csp] AsyncIterable', async t => {
+test('[csp] AsyncIterable - channel', async t => {
   const chan = channel<string>();
   put(chan, 'foo');
   for await (const m of chan) {
     t.equals(m, 'foo', 'should return the correct value');
     break;
+  }
+  t.end();
+});
+
+test('[csp] AsyncIterable - take', async t => {
+  const chan = channel<string>();
+  let i = 0;
+  const values = [ 'foo', 'bar', 'baz', 'end' ];
+  values.forEach(v => put(chan, v));
+  for await (const m of take(chan)) {
+    t.equals(m, values[i], 'should return the correct value');
+    i++;
+    if (m === 'end') break;
+  }
+  t.end();
+});
+
+test('[csp] AsyncIterable - alts', async t => {
+  const chan = channel<string>();
+  const chan2 = channel<boolean>();
+  let i = 0;
+  put(chan2, true);
+  const values = [ 'foo', 'bar', 'baz' ];
+  values.forEach(v => put(chan, v));
+  for await (const m of alts<any>(chan, chan2)) {
+    if (m === true) break;
+    t.equals(m, values[i], 'should return the correct value');
+    i++;
+  }
+  t.end();
+});
+
+test('[csp] AsyncIterable - select', async t => {
+  const chan = channel<string>();
+  const chan2 = channel<boolean>();
+  let i = 0;
+  put(chan2, true);
+  const values = [ 'foo', 'bar', 'baz' ];
+  values.forEach(v => put(chan, v));
+  const chanSet = new Set([ chan, chan2 ]);
+  for await (const [ c, m ] of select<string | boolean>(chanSet)) {
+    if (m === true) {
+      t.equals(c, chan2, 'should return the correct channel');
+      break;
+    }
+    t.equals(m, values[i], 'should return the correct value');
+    t.equals(c, chan, 'should return the correct channel');
+    i++;
   }
   t.end();
 });
