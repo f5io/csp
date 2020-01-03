@@ -10,8 +10,7 @@
     "noUnusedParameters": true,
     "noImplicitAny": true,
     "noImplicitUseStrict": true,
-    "downlevelIteration": true,
-    "declaration": true
+    "downlevelIteration": true
   },
   "include": [ "src/**/*", "test/**/*" ]
 }
