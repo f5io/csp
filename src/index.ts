@@ -64,7 +64,7 @@ function channel<T>(): Channel<T> {
     [racers]: [],
     async *[Symbol.asyncIterator]() {
       while (true) {
-        yield await take(this);
+        yield await _take(this);
       }
     }
   };
