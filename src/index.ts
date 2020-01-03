@@ -64,7 +64,7 @@ function channel<T>(): Channel<T> {
     [racers]: [],
     async *[Symbol.asyncIterator]() {
       while (true) {
-        yield await take(this);
+        yield await _take(this);
       }
     }
   };
@@ -83,46 +83,52 @@ function put<T>(ch: Channel<T>, msg: T): Promise<void> {
   });
 }
 
-function take<T>(ch: Channel<T>): IterablePromise<T> {
-  const promise = new Promise(resolve => {
+function _take<T>(ch: Channel<T>): Promise<T> {
+  return new Promise(resolve => {
     ch[takers].unshift(resolve);
     if (ch[putters].length) {
       ch[putters].pop()();
       ch[takers].pop()(ch[messages].pop());
     }
   });
+}
 
+function take<T>(ch: Channel<T>): IterablePromise<T> {
+  const promise = _take(ch);
   return Object.assign(promise, {
     async *[Symbol.asyncIterator]() {
       yield await promise;
       while (true) {
-        yield await take(ch);
+        yield await _take(ch);
       }
     }
   }) as IterablePromise<T>;
 }
 
-function alts<T>(...chs: Channel<T>[]): IterablePromise<T> {
-  const promise = Promise
+function _alts<T>(...chs: Channel<T>[]): Promise<T> {
+  return Promise
     .race(chs.map(ch => race(ch)))
     .then(ch => {
       chs.forEach(c => c !== ch && c[racers].pop());
       ch[putters].pop()();
       return ch[messages].pop();
     });
+}
 
+function alts<T>(...chs: Channel<T>[]): IterablePromise<T> {
+  const promise = _alts(...chs);
   return Object.assign(promise, {
     async *[Symbol.asyncIterator]() {
       yield await promise;
       while (true) {
-        yield await alts(...chs);
+        yield await _alts(...chs);
       }
     }
   }) as IterablePromise<T>;
 }
 
-function select<T>(chs: Selectable<T>): IterablePromise<[any, T]> {
-  const promise = Promise
+function _select<T>(chs: Selectable<T>): Promise<[any, T]> {
+  return Promise
     .race(map(chs, (ch, key) =>
       race(ch).then(result => [ key, result ]) as Promise<[any, Channel<T>]>))
     .then(([ key, ch ]) => {
@@ -130,12 +136,15 @@ function select<T>(chs: Selectable<T>): IterablePromise<[any, T]> {
       ch[putters].pop()();
       return [ key, ch[messages].pop() ];
     });
+}
 
+function select<T>(chs: Selectable<T>): IterablePromise<[any, T]> {
+  const promise = _select(chs);
   return Object.assign(promise, {
     async *[Symbol.asyncIterator]() {
       yield await promise;
       while (true) {
-        yield await select(chs);
+        yield await _select(chs);
       }
     }
   }) as IterablePromise<[any, T]>;

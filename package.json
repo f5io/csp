@@ -3,12 +3,15 @@
   "version": "1.0.7",
   "description": "async/await communicating sequential processes",
   "main": "dist/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "engines": {
     "node": ">=7.4"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build:cjs": "tsc -p tsconfig.build.json --module commonjs --target es5 --declaration",
+    "build:esm": "tsc -p tsconfig.build.json --module es2015 --target es2019 --outDir ./dist/esm",
+    "build": "npm run build:cjs && npm run build:esm",
     "dev": "tsc -w -p tsconfig.build.json",
     "test": "nyc --check-coverage --lines 100 --functions 100 --branches 100 tape -r ts-node/register ./test/index.spec.ts",
     "report": "nyc report --reporter=html",
