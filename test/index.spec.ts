@@ -139,7 +139,7 @@ test('[csp] select Map, chan1 ready', async t => {
   const m = msg();
   const key1 = Symbol();
   const key2 = Symbol();
-  const result = select<Input>(new Map<Symbol, Channel<Input>>([ [ key1, chan1 ], [ key2, chan2 ] ]));
+  const result = select<Input>(new Map<symbol, Channel<Input>>([ [ key1, chan1 ], [ key2, chan2 ] ]));
   await put(chan1, m);
   const [ id, res ] = await result;
   t.equal(id, key1, 'should receive the correct id');
