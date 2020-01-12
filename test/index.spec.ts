@@ -11,7 +11,7 @@ const msg = (() => {
 test('[csp] channel', t => {
   const chan = channel<number>();
   t.equal(Object.getOwnPropertySymbols(chan).length, 5, 'should contain 5 symbol properties');
-  t.equal(Object.keys(chan).length, 0, 'should not expose properties normally');
+  t.equal(Object.keys(chan).length, 1, 'should only expose length propery');
   t.end();
 });
 
@@ -26,6 +26,24 @@ test('[csp] take', t => {
   const chan = channel();
   const res = take(chan);
   t.ok(res instanceof Promise, 'should return an instance of a Promise');
+  t.end();
+});
+
+test('[csp] length', t => {
+  const chan = channel<string>();
+  t.equals(chan.length, 0, 'should start with length 1');
+  put(chan, 'foo');
+  put(chan, 'bar');
+  t.equals(chan.length, 2, 'should equal the message queue size');
+  take(chan);
+  t.equals(chan.length, 1, 'should equal the message queue size');
+  t.end();
+});
+
+test('[csp] length, readonly', t => {
+  const chan = channel<string>();
+  (chan as any).length = 9;
+  t.equals(chan.length, 0, 'should be unchanged');
   t.end();
 });
 

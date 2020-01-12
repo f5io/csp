@@ -8,6 +8,7 @@ export type Channel<T> = {
   [putters]: (() => void)[];
   [takers]: ((msg: T) => void)[];
   [racers]: ((ch: Channel<T>) => void)[];
+  readonly length: number;
   [Symbol.asyncIterator]: (() => AsyncIterableIterator<T>);
 }
 
@@ -57,17 +58,19 @@ function forEach<T>(sel: Selectable<T>, fn: (c: Channel<T>) => void): void {
 /* public methods */
 
 function channel<T>(): Channel<T> {
-  return {
+  const chan: Channel<T> = {
     [messages]: [],
     [putters]: [],
     [takers]: [],
     [racers]: [],
+    get length() { return chan[messages].length; },
     async *[Symbol.asyncIterator]() {
       while (true) {
         yield await _take(this);
       }
     }
   };
+  return chan;
 }
 
 function put<T>(ch: Channel<T>, msg: T): Promise<void> {
