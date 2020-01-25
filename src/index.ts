@@ -58,19 +58,18 @@ function forEach<T>(sel: Selectable<T>, fn: (c: Channel<T>) => void): void {
 /* public methods */
 
 function channel<T>(): Channel<T> {
-  const chan: Channel<T> = {
+  return {
     [messages]: [],
     [putters]: [],
     [takers]: [],
     [racers]: [],
-    get length() { return chan[messages].length; },
+    get length() { return this[messages].length; },
     async *[Symbol.asyncIterator]() {
       while (true) {
         yield await _take(this);
       }
     }
   };
-  return chan;
 }
 
 function put<T>(ch: Channel<T>, msg: T): Promise<void> {

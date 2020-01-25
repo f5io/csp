@@ -31,7 +31,7 @@ test('[csp] take', t => {
 
 test('[csp] length', t => {
   const chan = channel<string>();
-  t.equals(chan.length, 0, 'should start with length 1');
+  t.equals(chan.length, 0, 'should start with length 0');
   put(chan, 'foo');
   put(chan, 'bar');
   t.equals(chan.length, 2, 'should equal the message queue size');
