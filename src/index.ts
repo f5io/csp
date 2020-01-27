@@ -8,6 +8,7 @@ export type Channel<T> = {
   [putters]: (() => void)[];
   [takers]: ((msg: T) => void)[];
   [racers]: ((ch: Channel<T>) => void)[];
+  readonly length: number;
   [Symbol.asyncIterator]: (() => AsyncIterableIterator<T>);
 }
 
@@ -62,6 +63,7 @@ function channel<T>(): Channel<T> {
     [putters]: [],
     [takers]: [],
     [racers]: [],
+    get length() { return this[messages].length; },
     async *[Symbol.asyncIterator]() {
       while (true) {
         yield await _take(this);
