@@ -1,6 +1,6 @@
 {
   "name": "@f5io/csp",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "async/await communicating sequential processes",
   "main": "dist/index.js",
   "module": "dist/esm/index.js",
