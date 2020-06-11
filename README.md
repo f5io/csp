@@ -1,21 +1,21 @@
-# @paybase/csp
+# @f5io/csp
 
 A library for Communicating Sequential Processes in Node.js, built on top of `async/await`.
 
-[![npm version](https://badge.fury.io/js/%40paybase%2Fcsp.svg)](https://badge.fury.io/js/%40paybase%2Fcsp)
+[![npm version](https://badge.fury.io/js/%40f5io%2Fcsp.svg)](https://badge.fury.io/js/%40f5io%2Fcsp)
 
 ## Installation
 
 This library requires `async/await` support in your Node.js runtime, so ideally `node>=7.4`.
 
 ```
-$ npm install --save @paybase/csp
+$ npm install --save @f5io/csp
 ```
 
 or
 
 ```
-$ yarn add @paybase/csp
+$ yarn add @f5io/csp
 ```
 
 ## Example Usage
@@ -23,7 +23,7 @@ $ yarn add @paybase/csp
 Below is a trivial example of usage, that plays on the standard ping-pong example.
 
 ```javascript
-const { channel, put, take } = require('@paybase/csp');
+const { channel, put, take } = require('@f5io/csp');
 
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
