@@ -27,8 +27,8 @@ get_version_bump() {
 }
 
 if is_publish_branch "CIRCLE_BRANCH"; then
-  : ${NPM_USER:=paybase-ci}
-  : ${NPM_EMAIL:=ci@paybase.io}  
+  : ${NPM_USER:=f5io}
+  : ${NPM_EMAIL:=joe@f5.io}  
 
   check_env "NPM_USER"
   check_env "NPM_EMAIL"

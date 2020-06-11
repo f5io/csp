@@ -1,5 +1,5 @@
 {
-  "name": "@paybase/csp",
+  "name": "@f5io/csp",
   "version": "1.0.9",
   "description": "async/await communicating sequential processes",
   "main": "dist/index.js",
