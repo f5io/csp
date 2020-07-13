@@ -1,6 +1,6 @@
 # @f5io/csp
 
-A library for Communicating Sequential Processes in Node.js, built on top of `async/await`.
+A library for Communicating Sequential Processes in Node.js, built on top of `async/await` and `AsyncIterable`.
 
 [![npm version](https://badge.fury.io/js/%40f5io%2Fcsp.svg)](https://badge.fury.io/js/%40f5io%2Fcsp)
 
@@ -33,8 +33,7 @@ const waff = channel();
 const createBall = () => ({ hits: 0, status: '' });
 
 const createBat = async (inbound, outbound) => {
-  while (true) {
-    const ball = await take(inbound); // wait for an incoming ball
+  for await (const ball of inbound) {
     ball.hits++;
     ball.status = ball.status === 'wiff!' ? 'waff!' : 'wiff!';
     console.log(`🎾  Ball hit ${ball.hits} time(s), ${ball.status}`);
@@ -114,6 +113,32 @@ const result = await select(channels); // will receive [1, 42]
 ```
 
 Works with `Map` and `Set` as well as with plain-old javascript arrays and objects.
+
+A more complex TypeScript example might look like the following:
+
+```typescript
+type Error = { message: string; };
+type Result = { success: boolean; };
+
+const errors = channel<Error>();
+const results = channel<Result>();
+const channels = new Set([ errors, results ]);
+
+for await (const [ chan, msg ] of select<Error | Result>(channels)) {
+  switch (chan) {
+    case errors: {
+      const { message }: Error = msg;
+      console.log(message);
+      break;
+    }
+    case results: {
+      const { success }: Result = msg;
+      console.log(success);
+      break;
+    }
+  }
+}
+```
 
 ### `drain(channel)` -> `Promise`
 
